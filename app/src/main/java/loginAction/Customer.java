@@ -5,7 +5,10 @@ package loginAction;
  */
 public class Customer {
 
-    private String Customer_Name;
+    private String customer_Name;
+    private String customer_Id;
+    private String due_amount;
+
 
 
 

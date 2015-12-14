@@ -32,6 +32,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -151,6 +152,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                             String res = response.toString();
                             resp = res.replaceAll("\\s+", "");
                             System.out.println("resp"+resp);
+//                            String deviceId = getDeviceId(getApplicationContext());
+//
+//
+//                            TelephonyManager mngr = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+//                            mngr.getDeviceId();
+//
+//                            System.out.println("device id --> "+ deviceId);
 
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -275,8 +283,32 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mProgressView = findViewById(R.id.login_progress);
     }
 
+    public void getCurrentLocation() {
+        GPSTracker gps = new GPSTracker(LoginActivity.this);
+
+//        if (gps.isLocationFoundState()) {
+            Double[] coordinates =  gps.getLatLanDoubleArray();
+//            getCurrentLocationAsyncTask = new GetCurrentLocationAsyncTask(LocationSearchActivity.this, LocationSearchActivity.this, locationDao, AsyncTaskCodes.TASKCODE_TWO.ordinal());
+//            getCurrentLocationAsyncTask.execute(gps.getLatLanDoubleArray());
+
+//        } else if(gps.isPermissionNotAvailableState()) {
+            // Do nothing because , in do some thing on PermissionCallBackListener.onPermissionGrantedSuccessful
+//        }else {
+            gps.showSettingsAlert();
+//        }
+    }
 
 
+    public static String getDeviceId(Context context) {
+
+        try {
+            return Settings.Secure.getString(context.getContentResolver(),
+                    Settings.Secure.ANDROID_ID);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
     /*----Method to Check GPS is enable or disable ----- */
     private Boolean isGpsEnabled() {
         ContentResolver contentResolver = getBaseContext()
@@ -324,6 +356,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             this.getBaseContext().sendBroadcast(poke);
         }
     }
+
+
     private void populateAutoComplete() {
         if (!mayRequestContacts()) {
             return;

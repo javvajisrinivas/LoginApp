@@ -36,6 +36,7 @@ public class EmployeeActivity extends Activity {
 
                 // Pass image index
                 i.putExtra("id", position);
+                i.putExtra("operationSelected", ((TextView) v.findViewById(R.id.grid_item_label)).getText());
                 startActivity(i);
             }
         });

@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.CursorLoader;
@@ -47,6 +48,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.BufferedReader;
@@ -54,6 +56,13 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Locale;
+
+
+import com.loopj.android.http.*;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -88,199 +97,199 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private String errorMsg ="";
     public static String longitude = "";
     public static String latitude = "";
+    // Error Msg TextView Object
+    TextView errorMesg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
         //if you want to lock screen for always Portrait mode
-//        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         // Set up the login form.
         mMobileNumberView = (AutoCompleteTextView) findViewById(R.id.mobileNumber);
         populateAutoComplete();
 
         mPasswordView = (EditText) findViewById(R.id.password);
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
-                    return true;
-                }
-                return false;
-            }
-        });
+
+        errorMesg = (TextView) findViewById(R.id.login_error);
+        errorMesg.setText("");
 
         Button mmobileSignInButton = (Button) findViewById(R.id.mobile_in_button);
-        mmobileSignInButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                /** According with the new StrictGuard policy,  running long tasks on the Main UI thread is not possible
-                 So creating new thread to create and execute http operations */
-                new Thread(new Runnable() {
-
-                    @Override
-                    public void run() {
-
-
-                        StringBuffer response = new StringBuffer();
-                        try {
-
-                            URL url = new URL("https://demo4916103.mockable.io/getDetails");
-                            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                            conn.setRequestMethod("GET");
-                            conn.setRequestProperty("Accept", "application/json");
-
-                            if (conn.getResponseCode() != 200) {
-                                throw new RuntimeException("Failed : HTTP error code : "
-                                        + conn.getResponseCode());
-                            }
-
-                            BufferedReader br = new BufferedReader(new InputStreamReader(
-                                    (conn.getInputStream())));
-
-                            String output;
-                            System.out.println("Output from Server .... \n");
-                            while ((output = br.readLine()) != null) {
-                                response.append(output);
-                            }
-
-                            conn.disconnect();
-//                            response =  SimpleHttpClient.executeHttpPost("https://demo4916103.mockable.io/getDetails", postParameters);
-                            String res = response.toString();
-                            resp = res.replaceAll("\\s+", "");
-                            System.out.println("resp"+resp);
-//                            String deviceId = getDeviceId(getApplicationContext());
+//        mmobileSignInButton.setOnClickListener(new OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                errorMesg.setText("");
 //
+//                loginUser(v);
 //
-//                            TelephonyManager mngr = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-//                            mngr.getDeviceId();
-//
-//                            System.out.println("device id --> "+ deviceId);
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            errorMsg = e.getMessage();
-                        }
-                    }
-
-                }).start();
-
-                try {
-
-//                LocationListener  locationListener = new MyLocationListener();
-//                LocationManager locationMangaer = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-//                if (ContextCompat.checkSelfPermission(LoginActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-//                        || ContextCompat.checkSelfPermission(LoginActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-//                    locationMangaer.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, locationListener);
-//                }
-
-                    /** wait 3 seconds to get response from server */
-                    Thread.sleep(3000);
-                    /** Inside the new thread we cannot update the main thread
-                     So updating the main thread outside the new thread */
-
-                   // error.setText(resp);
-
-                    if (null != errorMsg && !errorMsg.isEmpty()) {
-                      //  error.setText(errorMsg);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    //error.setText(e.getMessage());
-                }
-
-
-
-                System.out.println("resp --->" + resp);
-                System.out.println("errorMsg --->" + errorMsg);
-
-                Intent empActivity = new Intent(getApplicationContext(), EmployeeActivity.class);
-
-                startActivity(empActivity);
-                finish();
-
-
-//                EmployeeActivity
-
-            }
 //            }
-        });
+//        });
 
-//        try
-//        {
-//            //startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-//            final LocationManager locationManager = (LocationManager)
-//                    getSystemService(Context.LOCATION_SERVICE);
-//
-//            if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
-//                    !locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-//                // Build the alert dialog
-//                android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
-//                builder.setTitle("Location Services Not Active");
-//                builder.setMessage("Please enable Location Services and GPS");
-//                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-//                    public void onClick(DialogInterface dialogInterface, int i) {
-//                        // Show location settings when the user acknowledges the alert dialog
-//                        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-//                        startActivity(intent);
-//
-//                        System.out.println("activating the gps programatically");
-//                        turnGPSOn();
-//                        try {
-//                            Thread.sleep(2000);
-//                            if(isGpsEnabled())
-//                            {
-//                                LocationListener locationListener = new MyLocationListener();
-//
-//
-//                                if (locationManager != null) {
-//
-//                                    if (ContextCompat.checkSelfPermission(LoginActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-//                                            || ContextCompat.checkSelfPermission(LoginActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-//                                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10,locationListener);
-//
-//
-//                                    //                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-//                                    //                        || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-//                                    //                   // locationMangaer.removeUpdates(GetCurrentLocation.this);
-//                                    //
-//                                    //                }
-//                                }
-//
-//
-//                                turnGPSOff();
-//                            }
-//                            else
-//                            {
-//                                System.out.println("unable to enable gps");
-//                            }
-//
-//
-//                        }
-//                        catch (Exception e)
-//                        {
-//                            e.printStackTrace();
-//                        }
-//
-//
-//                    }
-//                });
-//                Dialog alertDialog = builder.create();
-//                alertDialog.setCanceledOnTouchOutside(false);
-//                alertDialog.show();
-//
-////
-//            }
-//        }catch (Exception ee)
-//        {
-//            ee.printStackTrace();
-//        }
-
+//        errorMesg.setText(resp);
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+    }
+
+
+    /**
+     * Method gets triggered when Login button is clicked
+     *
+     * @param view
+     */
+    public void loginUser(View view){
+        // Reset errors.
+        mMobileNumberView.setError(null);
+        mPasswordView.setError(null);
+
+        // Store values at the time of the login attempt.
+        String mobileNumber = mMobileNumberView.getText().toString();
+        String password = mPasswordView.getText().toString();
+        String deviceId = getDeviceId(getApplicationContext());
+        System.out.println("device id --> "+ deviceId);
+
+        boolean cancel = false;
+        View focusView = null;
+
+        // Check for a valid password, if the user entered one.
+        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
+            mPasswordView.setError(getString(R.string.error_invalid_password));
+            focusView = mPasswordView;
+            cancel = true;
+        }
+
+        // Check for a valid mobile Number.
+        if (TextUtils.isEmpty(mobileNumber)) {
+            mMobileNumberView.setError(getString(R.string.error_field_required));
+            focusView = mMobileNumberView;
+            cancel = true;
+        } else if (!isMobileNumberValid(mobileNumber)) {
+            mMobileNumberView.setError(getString(R.string.error_invalid_mobile_number));
+            focusView = mMobileNumberView;
+            cancel = true;
+        }
+
+        if (cancel) {
+            // There was an error; don't attempt login and focus the first
+            // form field with an error.
+            focusView.requestFocus();
+        } else {
+            // Show a progress spinner, and kick off a background task to
+            // perform the user login attempt.
+            showProgress(true);
+
+            // Instantiate Http Request Param Object
+            RequestParams params = new RequestParams();
+
+            // Put Http parameter username with value of Email Edit View control
+            params.put("username", mobileNumber);
+            // Put Http parameter password with value of Password Edit Value control
+            params.put("password", password);
+            // Put Http parameter deviceId with value of deviceId from Program
+            params.put("deviceId", deviceId);
+            // Invoke RESTful Web Service with Http parameters
+            invokeWS(params);
+
+//            new Thread(new Runnable() {
+//
+//                @Override
+//                public void run() {
+//
+//
+//                }
+//            });
+
+
+        }
+
+
+    }
+
+    /**
+     * Method that performs RESTful webservice invocations
+     *
+     * @param params
+     */
+    public void invokeWS(RequestParams params){
+        // Show Progress Dialog
+//        prgDialog.show();
+        // Make RESTful webservice call using AsyncHttpClient object
+        AsyncHttpClient client = new AsyncHttpClient();
+        client.get("http://1.0.0.12:8080/useraccount/login/dologin", params, new AsyncHttpResponseHandler() {
+
+            // When the response returned by REST has Http response code '200'
+            @Override
+            public void onSuccess(String response) {
+                // Hide Progress Dialog
+//                prgDialog.hide();
+                try {
+                    // JSON Object
+                    JSONObject obj = new JSONObject(response);
+                    // When the JSON response has status boolean value assigned with true
+                    if (obj.getBoolean("status")) {
+                        Toast.makeText(getApplicationContext(), "You are successfully logged in!", Toast.LENGTH_LONG).show();
+                        // Navigate to Home screen
+                        navigatetoHomeActivity();
+                    }
+                    // Else display error message
+                    else {
+                        errorMesg.setText(obj.getString("error_msg"));
+                        Toast.makeText(getApplicationContext(), obj.getString("error_msg"), Toast.LENGTH_LONG).show();
+                    }
+                } catch (JSONException e) {
+                    // TODO Auto-generated catch block
+                    Toast.makeText(getApplicationContext(), "Error Occured [Server's JSON response might be invalid]!", Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+
+                }
+            }
+
+//            @Override
+//            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+//                try {
+//                    String e = responseBody == null?null:new String(responseBody, this.getCharset());
+//                    System.out.println("response is --> "+ e);
+//                    this.onFailure(statusCode, headers, error, e);
+//                } catch (UnsupportedEncodingException var6) {
+//                    this.onFailure(statusCode, headers, (Throwable) var6, (String) null);
+//                }
+//
+//            }
+
+            // When the response returned by REST has Http response code other than '200'
+            @Override
+            public void onFailure(int statusCode, Throwable error,
+                                  String content) {
+                // Hide Progress Dialog
+//                prgDialog.hide();
+                // When Http response code is '404'
+                if (statusCode == 404) {
+                    Toast.makeText(getApplicationContext(), "Requested resource not found", Toast.LENGTH_LONG).show();
+                }
+                // When Http response code is '500'
+                else if (statusCode == 500) {
+                    Toast.makeText(getApplicationContext(), "Something went wrong at server end", Toast.LENGTH_LONG).show();
+                }
+                // When Http response code other than 404, 500
+                else {
+                    Toast.makeText(getApplicationContext(), "Unexpected Error occcured! [Most common Error: Device might not be connected to Internet or remote server is not up and running]", Toast.LENGTH_LONG).show();
+                }
+            }
+
+
+
+        });
+    }
+
+    /**
+     * Method which navigates from Login Activity to Home Activity
+     */
+    public void navigatetoHomeActivity(){
+        Intent homeIntent = new Intent(getApplicationContext(),EmployeeActivity.class);
+        homeIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(homeIntent);
     }
 
     public void getCurrentLocation() {
@@ -288,13 +297,18 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
 //        if (gps.isLocationFoundState()) {
             Double[] coordinates =  gps.getLatLanDoubleArray();
+        if(coordinates != null)
+        {
+            System.out.println("coordinates longitude -->"+coordinates[0]);
+            System.out.println("coordinates latitude -->"+coordinates[1]);
+        }
 //            getCurrentLocationAsyncTask = new GetCurrentLocationAsyncTask(LocationSearchActivity.this, LocationSearchActivity.this, locationDao, AsyncTaskCodes.TASKCODE_TWO.ordinal());
 //            getCurrentLocationAsyncTask.execute(gps.getLatLanDoubleArray());
 
 //        } else if(gps.isPermissionNotAvailableState()) {
             // Do nothing because , in do some thing on PermissionCallBackListener.onPermissionGrantedSuccessful
 //        }else {
-            gps.showSettingsAlert();
+//            gps.showSettingsAlert();
 //        }
     }
 
@@ -408,9 +422,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * errors are presented and no actual login attempt is made.
      */
     private void attemptLogin() {
-        if (mAuthTask != null) {
-            return;
-        }
+//        if (mAuthTask != null) {
+//            return;
+//        }
 
         // Reset errors.
         mMobileNumberView.setError(null);
@@ -449,8 +463,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(mobileNumber, password);
-            mAuthTask.execute((Void) null);
+
+
+//            mAuthTask = new UserLoginTask(mobileNumber, password);
+//            mAuthTask.execute((Void) null);
         }
     }
 
@@ -458,6 +474,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         //TODO: Replace this with your own logic
 
         if (mobileNumber.length() == 10 || ("+91" + mobileNumber).length() == 13) {
+            try
+            {
+                Long.parseLong(mobileNumber);
+            }catch(Exception e)
+            {
+                return false;
+            }
             return true;
         } else {
             return false;
